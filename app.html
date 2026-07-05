@@ -1,0 +1,338 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Uncreep — Scope Creep Firewall (Live Demo)</title>
+<style>
+  :root{
+    --bg:#0d1117; --panel:#161b22; --panel2:#1c2330; --border:#2d3644;
+    --text:#e6edf3; --muted:#8b98a9; --accent:#4ade80; --accent-dark:#16a34a;
+    --danger:#f87171; --warn:#fbbf24; --blue:#60a5fa; --gold:#fbbf24;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{background:var(--bg);color:var(--text);font-family:'Segoe UI',system-ui,-apple-system,sans-serif;line-height:1.5}
+  .promo{background:linear-gradient(90deg,rgba(251,191,36,.14),rgba(217,119,6,.14));border-bottom:1px solid rgba(251,191,36,.35);text-align:center;padding:8px 14px;font-size:13px;color:var(--text)}
+  .promo a{color:var(--gold);font-weight:700;text-decoration:none}
+  .promo a:hover{text-decoration:underline}
+  .wrap{max-width:1100px;margin:0 auto;padding:24px 20px 80px}
+  header{display:flex;align-items:center;justify-content:space-between;margin-bottom:24px;flex-wrap:wrap;gap:12px}
+  .logo{font-size:24px;font-weight:800;letter-spacing:-.5px}
+  .logo span{color:var(--accent)}
+  .tag{color:var(--muted);font-size:13px}
+  .home-link{color:var(--muted);font-size:13px;text-decoration:none;border:1px solid var(--border);border-radius:8px;padding:5px 10px}
+  .home-link:hover{color:var(--text)}
+  .grid{display:grid;grid-template-columns:340px 1fr;gap:20px}
+  @media(max-width:860px){.grid{grid-template-columns:1fr}}
+  .card{background:var(--panel);border:1px solid var(--border);border-radius:12px;padding:18px}
+  .card h2{font-size:14px;text-transform:uppercase;letter-spacing:1px;color:var(--muted);margin-bottom:14px}
+  label{display:block;font-size:12px;color:var(--muted);margin:10px 0 4px}
+  input,textarea,select{width:100%;background:var(--panel2);border:1px solid var(--border);border-radius:8px;color:var(--text);padding:9px 11px;font-size:14px;font-family:inherit}
+  textarea{resize:vertical;min-height:90px}
+  input:focus,textarea:focus{outline:none;border-color:var(--accent-dark)}
+  button{cursor:pointer;border:none;border-radius:8px;padding:10px 16px;font-size:14px;font-weight:600;font-family:inherit}
+  .btn-primary{background:var(--accent-dark);color:#fff}
+  .btn-primary:hover{background:#15803d}
+  .btn-ghost{background:transparent;color:var(--muted);border:1px solid var(--border)}
+  .btn-ghost:hover{color:var(--text)}
+  .btn-sm{padding:5px 10px;font-size:12px}
+  .scope-item{display:flex;align-items:center;justify-content:space-between;background:var(--panel2);border:1px solid var(--border);border-radius:8px;padding:8px 11px;margin-bottom:6px;font-size:13px}
+  .scope-item button{background:none;color:var(--muted);padding:0 4px;font-size:15px}
+  .scope-item button:hover{color:var(--danger)}
+  .stats{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:20px}
+  @media(max-width:860px){.stats{grid-template-columns:repeat(2,1fr)}}
+  .stat{background:var(--panel);border:1px solid var(--border);border-radius:12px;padding:14px;text-align:center}
+  .stat .num{font-size:24px;font-weight:800}
+  .stat .lbl{font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;margin-top:2px}
+  .verdict{border-radius:10px;padding:14px 16px;margin-top:16px;font-size:14px;display:none}
+  .verdict.creep{display:block;background:rgba(248,113,113,.08);border:1px solid rgba(248,113,113,.4)}
+  .verdict.scope{display:block;background:rgba(74,222,128,.08);border:1px solid rgba(74,222,128,.4)}
+  .verdict.review{display:block;background:rgba(251,191,36,.08);border:1px solid rgba(251,191,36,.4)}
+  .verdict h3{font-size:16px;margin-bottom:6px}
+  .verdict.creep h3{color:var(--danger)} .verdict.scope h3{color:var(--accent)} .verdict.review h3{color:var(--warn)}
+  .flag{display:inline-block;background:rgba(248,113,113,.15);color:var(--danger);border-radius:5px;padding:1px 7px;margin:2px 3px 2px 0;font-size:12px}
+  .match{display:inline-block;background:rgba(74,222,128,.15);color:var(--accent);border-radius:5px;padding:1px 7px;margin:2px 3px 2px 0;font-size:12px}
+  .estimate-row{display:grid;grid-template-columns:1fr 1fr auto;gap:10px;align-items:end;margin-top:12px}
+  .email-box{background:var(--panel2);border:1px solid var(--border);border-radius:8px;padding:14px;margin-top:12px;font-size:13px;white-space:pre-wrap;display:none}
+  .log-item{border-bottom:1px solid var(--border);padding:10px 0;font-size:13px}
+  .log-item:last-child{border-bottom:none}
+  .log-item .meta{color:var(--muted);font-size:11px;margin-top:2px}
+  .pill{border-radius:20px;padding:1px 9px;font-size:11px;font-weight:700}
+  .pill.creep{background:rgba(248,113,113,.15);color:var(--danger)}
+  .pill.scope{background:rgba(74,222,128,.15);color:var(--accent)}
+  .pill.review{background:rgba(251,191,36,.15);color:var(--warn)}
+  .pill.recovered{background:rgba(96,165,250,.15);color:var(--blue)}
+  .row{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+  .mt{margin-top:12px}
+  .hint{font-size:12px;color:var(--muted);margin-top:8px}
+  .banner{background:var(--panel2);border:1px dashed var(--border);border-radius:10px;padding:10px 14px;font-size:12px;color:var(--muted);margin-bottom:20px}
+</style>
+</head>
+<body>
+<div class="promo">This is the free live demo. Lock in Pro forever for $29 → <a href="/#waitlist" >Become a founding member</a></div>
+<div class="wrap">
+  <header>
+    <div>
+      <div class="logo">un<span>creep</span></div>
+      <div class="tag">Turn "just one more thing" into a paid change order.</div>
+    </div>
+    <div class="row">
+      <a class="home-link" href="/">← Back to home</a>
+      <button class="btn-ghost btn-sm" onclick="exportData()">Export data</button>
+      <button class="btn-ghost btn-sm" onclick="document.getElementById('importFile').click()">Import</button>
+      <input type="file" id="importFile" accept=".json" style="display:none" onchange="importData(event)">
+    </div>
+  </header>
+
+  <div class="banner">MVP demo — data lives in this browser session. Use Export/Import to save your work. A sample project is preloaded so you can try it immediately: paste a client message on the right and hit <b>Check message</b>.</div>
+
+  <div class="stats">
+    <div class="stat"><div class="num" id="stChecks">0</div><div class="lbl">Messages checked</div></div>
+    <div class="stat"><div class="num" id="stCreep" style="color:var(--danger)">0</div><div class="lbl">Creep caught</div></div>
+    <div class="stat"><div class="num" id="stQuoted" style="color:var(--warn)">$0</div><div class="lbl">Change orders quoted</div></div>
+    <div class="stat"><div class="num" id="stRecovered" style="color:var(--accent)">$0</div><div class="lbl">Revenue recovered</div></div>
+  </div>
+
+  <div class="grid">
+    <div>
+      <div class="card">
+        <h2>Project & Scope of Work</h2>
+        <label>Project name</label>
+        <input id="projName" placeholder="e.g. Acme website redesign">
+        <label>Client name</label>
+        <input id="clientName" placeholder="e.g. Sarah">
+        <label>Your hourly rate ($)</label>
+        <input id="rate" type="number" min="0" placeholder="90">
+        <label>Add scope item (what IS included)</label>
+        <div class="row">
+          <input id="scopeInput" placeholder="e.g. Homepage design (2 revisions)" style="flex:1" onkeydown="if(event.key==='Enter')addScope()">
+          <button class="btn-primary btn-sm" onclick="addScope()">Add</button>
+        </div>
+        <div class="mt" id="scopeList"></div>
+        <p class="hint">Tip: paste each deliverable from your contract/proposal as a scope item. Detection compares client requests against these.</p>
+      </div>
+    </div>
+
+    <div>
+      <div class="card">
+        <h2>Check a client message</h2>
+        <textarea id="clientMsg" placeholder="Paste the client's email or message here…"></textarea>
+        <div class="row mt">
+          <button class="btn-primary" onclick="analyze()">Check message</button>
+          <button class="btn-ghost btn-sm" onclick="loadSampleMsg()">Try a sample message</button>
+        </div>
+
+        <div id="verdict" class="verdict">
+          <h3 id="verdictTitle"></h3>
+          <div id="verdictBody"></div>
+          <div id="creepTools" style="display:none">
+            <div class="estimate-row">
+              <div><label>Estimated extra hours</label><input id="hours" type="number" min="0" step="0.5" value="2"></div>
+              <div><label>Change order value</label><input id="coValue" readonly></div>
+              <button class="btn-primary" onclick="genEmail()">Generate change-order email</button>
+            </div>
+            <div class="email-box" id="emailBox"></div>
+            <div class="row mt" id="emailActions" style="display:none">
+              <button class="btn-ghost btn-sm" onclick="copyEmail()">Copy email</button>
+              <button class="btn-primary btn-sm" onclick="logCreep(false)">Log as sent</button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="card mt" style="margin-top:20px">
+        <h2>Activity log</h2>
+        <div id="log"><p class="hint">No checks yet.</p></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+'use strict';
+// ---------- state (in-memory; export/import for persistence) ----------
+var state = {
+  project:{name:'Acme website redesign',client:'Sarah',rate:90,
+    scope:['Homepage design with 2 revision rounds','About and Contact page design','Responsive build for mobile and tablet','Basic on-page SEO setup','One training call at handoff']},
+  log:[], stats:{checks:0,creep:0,quoted:0,recovered:0}
+};
+var lastAnalysis = null;
+
+// ---------- creep detection heuristics ----------
+var CREEP_PHRASES = ['can you also','could you also','can you just','could you just','one more thing','quick favor','real quick','really quick',"while you're at it",'while you are at it','while youre at it','small change','tiny change','little tweak','quick tweak',"shouldn't take long",'shouldnt take long',"won't take long",'wont take long','super simple','super quick','just add','also add','throw in','as a bonus','one small','one tiny','one quick','a couple more','few more','on top of that','additionally','extra page','extra feature','also need','we also want','it would be great if you could also','oh and','btw can','by the way can'];
+var STOP = new Set(['the','a','an','and','or','of','to','for','with','on','in','is','are','it','this','that','we','you','i','can','could','would','please','also','just','our','your','be','have','has','do','does','my','me','us','at','by','from','as','if','so','but','not','no','yes']);
+
+function tokens(s){return s.toLowerCase().replace(/[^a-z0-9\s]/g,' ').split(/\s+/).filter(function(w){return w.length>2 && !STOP.has(w);});}
+
+function analyzeMessage(msg, scope){
+  var lower = msg.toLowerCase().replace(/[‘’]/g, "'");
+  var flags = CREEP_PHRASES.filter(function(p){return lower.indexOf(p)!==-1;});
+  var msgTok = tokens(msg);
+  var matches = [];
+  var bestOverlap = 0;
+  scope.forEach(function(item){
+    var it = tokens(item);
+    var overlap = it.filter(function(w){return msgTok.indexOf(w)!==-1;});
+    if(overlap.length>=1){ matches.push({item:item,words:overlap}); }
+    if(overlap.length>bestOverlap) bestOverlap = overlap.length;
+  });
+  // verdict logic
+  var verdict;
+  if(flags.length>=1 && bestOverlap<2) verdict='creep';
+  else if(flags.length>=2) verdict='creep';
+  else if(bestOverlap>=2 && flags.length===0) verdict='scope';
+  else if(bestOverlap>=2 && flags.length===1) verdict='review';
+  else if(flags.length===0 && bestOverlap<2) verdict='review';
+  else verdict='review';
+  return {verdict:verdict, flags:flags, matches:matches, msg:msg};
+}
+
+// ---------- UI ----------
+function $(id){return document.getElementById(id);}
+function esc(s){var d=document.createElement('div');d.textContent=s;return d.innerHTML;}
+function money(n){return '$'+Math.round(n).toLocaleString();}
+
+function render(){
+  $('projName').value = state.project.name;
+  $('clientName').value = state.project.client;
+  $('rate').value = state.project.rate;
+  var sl = $('scopeList'); sl.innerHTML='';
+  state.project.scope.forEach(function(item,i){
+    var d=document.createElement('div'); d.className='scope-item';
+    d.innerHTML='<span>'+esc(item)+'</span><button title="Remove" onclick="removeScope('+i+')">×</button>';
+    sl.appendChild(d);
+  });
+  $('stChecks').textContent = state.stats.checks;
+  $('stCreep').textContent = state.stats.creep;
+  $('stQuoted').textContent = money(state.stats.quoted);
+  $('stRecovered').textContent = money(state.stats.recovered);
+  renderLog();
+}
+
+function renderLog(){
+  var el = $('log');
+  if(state.log.length===0){el.innerHTML='<p class="hint">No checks yet.</p>';return;}
+  el.innerHTML='';
+  state.log.slice().reverse().forEach(function(e){
+    var d=document.createElement('div'); d.className='log-item';
+    var pill = e.recovered ? '<span class="pill recovered">RECOVERED '+money(e.value)+'</span>'
+      : '<span class="pill '+e.verdict+'">'+(e.verdict==='creep'?'CREEP'+(e.value?' • '+money(e.value)+' quoted':''):e.verdict.toUpperCase())+'</span>';
+    var btn = (e.verdict==='creep' && e.value && !e.recovered)
+      ? ' <button class="btn-ghost btn-sm" onclick="markRecovered('+e.id+')">Client accepted → mark recovered</button>' : '';
+    d.innerHTML = pill + btn + '<div class="mt" style="margin-top:6px">'+esc(e.msg.length>160?e.msg.slice(0,160)+'…':e.msg)+'</div><div class="meta">'+e.when+'</div>';
+    el.appendChild(d);
+  });
+}
+
+function syncProject(){
+  state.project.name=$('projName').value; state.project.client=$('clientName').value;
+  state.project.rate=parseFloat($('rate').value)||0;
+}
+['projName','clientName','rate'].forEach(function(id){ document.addEventListener('DOMContentLoaded',function(){ $(id).addEventListener('change',syncProject); }); });
+
+function addScope(){
+  var v=$('scopeInput').value.trim();
+  if(!v)return;
+  state.project.scope.push(v); $('scopeInput').value=''; render();
+}
+function removeScope(i){ state.project.scope.splice(i,1); render(); }
+
+function loadSampleMsg(){
+  $('clientMsg').value = "Hi! The homepage mockup looks great. One more thing — while you're at it, can you also design a pricing page and set up a blog template? Shouldn't take long since you already have the style figured out. Thanks!!";
+}
+
+function analyze(){
+  syncProject();
+  var msg=$('clientMsg').value.trim();
+  if(!msg){alert('Paste a client message first.');return;}
+  if(state.project.scope.length===0){alert('Add at least one scope item first.');return;}
+  var r = analyzeMessage(msg, state.project.scope);
+  lastAnalysis = r;
+  state.stats.checks++;
+  var v=$('verdict'); v.className='verdict '+r.verdict;
+  var flagsHtml = r.flags.length? '<div class="mt"><b>Creep signals:</b> '+r.flags.map(function(f){return '<span class="flag">'+esc(f)+'</span>';}).join('')+'</div>':'';
+  var matchHtml = r.matches.length? '<div class="mt"><b>Scope overlap:</b> '+r.matches.map(function(m){return '<span class="match">'+esc(m.item)+'</span>';}).join('')+'</div>':'';
+  if(r.verdict==='creep'){
+    state.stats.creep++;
+    $('verdictTitle').textContent='⚠ Likely scope creep';
+    $('verdictBody').innerHTML='This request contains classic creep language and doesn’t match your scope of work.'+flagsHtml+matchHtml;
+    $('creepTools').style.display='block'; updateCO();
+  } else if(r.verdict==='scope'){
+    $('verdictTitle').textContent='✓ Looks in scope';
+    $('verdictBody').innerHTML='This maps to your agreed deliverables. No action needed.'+matchHtml;
+    $('creepTools').style.display='none';
+    state.log.push({id:Date.now(),verdict:'scope',msg:msg,value:0,recovered:false,when:new Date().toLocaleString()});
+  } else {
+    $('verdictTitle').textContent='? Needs your judgment';
+    $('verdictBody').innerHTML='Mixed signals — partly matches scope but includes possible extras. Review before agreeing.'+flagsHtml+matchHtml;
+    $('creepTools').style.display='block'; updateCO();
+  }
+  $('emailBox').style.display='none'; $('emailActions').style.display='none';
+  render();
+}
+
+function updateCO(){
+  var h=parseFloat($('hours').value)||0;
+  $('coValue').value = money(h*state.project.rate);
+}
+document.addEventListener('DOMContentLoaded',function(){ $('hours').addEventListener('input',updateCO); });
+
+function genEmail(){
+  syncProject();
+  var h=parseFloat($('hours').value)||0;
+  var val=h*state.project.rate;
+  var client=state.project.client||'there';
+  var email='Hi '+client+',\n\n'+
+  'Happy to help with this! Since it falls outside the scope we agreed on for '+(state.project.name||'the project')+', I’ve put together a quick change order so we can slot it in properly:\n\n'+
+  '• Additional work: '+summarizeRequest()+'\n'+
+  '• Estimated effort: '+h+' hour'+(h===1?'':'s')+'\n'+
+  '• Investment: '+money(val)+'\n\n'+
+  'If that works for you, just reply “approved” and I’ll fold it into the schedule without impacting our current timeline.\n\n'+
+  'Thanks!\n';
+  $('emailBox').textContent=email; $('emailBox').style.display='block';
+  $('emailActions').style.display='flex';
+}
+
+function summarizeRequest(){
+  if(!lastAnalysis) return 'the requested additions';
+  var s=lastAnalysis.msg.replace(/\s+/g,' ').trim();
+  return s.length>110 ? s.slice(0,110)+'…' : s;
+}
+
+function copyEmail(){
+  var t=$('emailBox').textContent;
+  if(navigator.clipboard && navigator.clipboard.writeText){ navigator.clipboard.writeText(t); }
+  else { var ta=document.createElement('textarea'); ta.value=t; document.body.appendChild(ta); ta.select(); document.execCommand('copy'); document.body.removeChild(ta); }
+  alert('Email copied to clipboard.');
+}
+
+function logCreep(){
+  var h=parseFloat($('hours').value)||0;
+  var val=Math.round(h*state.project.rate);
+  state.stats.quoted+=val;
+  state.log.push({id:Date.now(),verdict:'creep',msg:lastAnalysis?lastAnalysis.msg:'',value:val,recovered:false,when:new Date().toLocaleString()});
+  render();
+  alert('Logged. When the client approves, mark it recovered in the activity log.');
+}
+
+function markRecovered(id){
+  var e=state.log.find(function(x){return x.id===id;});
+  if(e && !e.recovered){ e.recovered=true; state.stats.recovered+=e.value; render(); }
+}
+
+// ---------- export / import ----------
+function exportData(){
+  var blob=new Blob([JSON.stringify(state,null,2)],{type:'application/json'});
+  var a=document.createElement('a'); a.href=URL.createObjectURL(blob); a.download='uncreep-data.json'; a.click();
+}
+function importData(ev){
+  var f=ev.target.files[0]; if(!f)return;
+  var r=new FileReader();
+  r.onload=function(){ try{ state=JSON.parse(r.result); render(); }catch(e){ alert('Invalid file.'); } };
+  r.readAsText(f);
+}
+
+document.addEventListener('DOMContentLoaded',render);
+</script>
+</body>
+</html>

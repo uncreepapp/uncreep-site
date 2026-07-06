@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Scope Creep Cost Calculator — How Much Free Work Are You Doing? | Uncreep</title>
+<meta name="description" content="Free calculator: find out how much money you lose per year to scope creep as a freelancer. Enter your rate and unbilled hours — see the real annual cost.">
+<link rel="canonical" href="https://uncreep.app/calculator">
+<meta property="og:title" content="Scope Creep Cost Calculator — Uncreep">
+<meta property="og:description" content="Find out how much you're losing to 'just one more thing' requests every year.">
+<meta property="og:type" content="website">
+<meta property="og:url" content="https://uncreep.app/calculator">
+<style>
+  :root{--bg:#0d1117;--panel:#161b22;--panel2:#1c2330;--border:#2d3644;--text:#e6edf3;--muted:#8b98a9;--accent:#4ade80;--accent-dark:#16a34a;--danger:#f87171;--gold:#fbbf24}
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{background:var(--bg);color:var(--text);font-family:'Segoe UI',system-ui,-apple-system,sans-serif;line-height:1.6}
+  .wrap{max-width:720px;margin:0 auto;padding:0 24px 80px}
+  nav{display:flex;justify-content:space-between;align-items:center;padding:22px 0}
+  .logo{font-size:22px;font-weight:800;color:var(--text);text-decoration:none}
+  .logo span{color:var(--accent)}
+  .btn{display:inline-block;background:var(--accent-dark);color:#fff;border:none;border-radius:10px;padding:13px 26px;font-size:15px;font-weight:700;cursor:pointer;text-decoration:none;font-family:inherit}
+  .btn:hover{background:#15803d}
+  .btn-sm{padding:9px 18px;font-size:14px}
+  h1{font-size:34px;line-height:1.2;letter-spacing:-.5px;text-align:center;margin:36px 0 10px}
+  .sub{color:var(--muted);text-align:center;max-width:540px;margin:0 auto 36px;font-size:16px}
+  .card{background:var(--panel);border:1px solid var(--border);border-radius:14px;padding:26px}
+  label{display:block;font-size:13px;color:var(--muted);margin:16px 0 6px}
+  label:first-of-type{margin-top:0}
+  input[type=number]{width:100%;background:var(--panel2);border:1px solid var(--border);border-radius:8px;color:var(--text);padding:12px;font-size:16px;font-family:inherit}
+  input:focus{outline:none;border-color:var(--accent-dark)}
+  .hint{font-size:12px;color:var(--muted);margin-top:4px}
+  .result{display:none;margin-top:26px;background:rgba(248,113,113,.07);border:1px solid rgba(248,113,113,.4);border-radius:14px;padding:26px;text-align:center}
+  .result .big{font-size:44px;font-weight:800;color:var(--danger);letter-spacing:-1px}
+  .result .lbl{color:var(--muted);font-size:14px;margin-top:4px}
+  .result-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;margin-top:22px}
+  @media(max-width:600px){.result-grid{grid-template-columns:1fr}}
+  .mini{background:var(--panel);border:1px solid var(--border);border-radius:10px;padding:14px}
+  .mini .n{font-size:20px;font-weight:800}
+  .mini .d{font-size:12px;color:var(--muted)}
+  .cta{margin-top:26px;background:var(--panel);border:1px solid var(--accent-dark);border-radius:14px;padding:24px;text-align:center;display:none}
+  .cta h3{font-size:19px;margin-bottom:8px}
+  .cta p{color:var(--muted);font-size:14px;margin-bottom:16px}
+  .fine{color:var(--muted);font-size:12px;text-align:center;margin-top:30px}
+  footer{border-top:1px solid var(--border);padding:24px 0;color:var(--muted);font-size:13px;text-align:center;margin-top:60px}
+  footer a{color:var(--muted)}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <nav>
+    <a class="logo" href="/">un<span>creep</span></a>
+    <a href="/app.html" class="btn btn-sm">Try the free demo</a>
+  </nav>
+
+  <h1>The Scope Creep Cost Calculator</h1>
+  <p class="sub">"Quick favors," extra revisions, "while you're at it" additions — they feel small. Add them up and most freelancers are donating a used car every year. See your number.</p>
+
+  <div class="card">
+    <label>Your hourly rate (USD)</label>
+    <input type="number" id="rate" min="1" placeholder="e.g. 75" value="75">
+    <div class="hint">If you charge per project, estimate: project price ÷ hours it actually takes.</div>
+
+    <label>Unbilled "extra" hours in a typical week</label>
+    <input type="number" id="hours" min="0" step="0.5" placeholder="e.g. 3" value="3">
+    <div class="hint">Extra revisions, small additions, calls that became work sessions. Industry surveys put the average at 3–5 hrs/week.</div>
+
+    <label>Working weeks per year</label>
+    <input type="number" id="weeks" min="1" max="52" placeholder="e.g. 46" value="46">
+
+    <div style="text-align:center;margin-top:22px">
+      <button class="btn" onclick="calc()">Calculate my loss</button>
+    </div>
+  </div>
+
+  <div class="result" id="result">
+    <div class="big" id="annual">$0</div>
+    <div class="lbl">given away to scope creep every year</div>
+    <div class="result-grid">
+      <div class="mini"><div class="n" id="monthly">$0</div><div class="d">per month</div></div>
+      <div class="mini"><div class="n" id="hoursYr">0 hrs</div><div class="d">unpaid hours/year</div></div>
+      <div class="mini"><div class="n" id="days">0</div><div class="d">full working days donated</div></div>
+    </div>
+  </div>
+
+  <div class="cta" id="cta">
+    <h3 id="ctaTitle">Recover it — one change order at a time</h3>
+    <p>Uncreep checks every client message against your scope of work and drafts the polite "happy to — here's the change order" email for you. Catch a single request and it's paid for itself many times over.</p>
+    <a class="btn" href="/app.html">Try the free demo →</a>
+    <p style="margin-top:14px;font-size:13px"><a href="/#waitlist" style="color:var(--accent)">Or join the waitlist — founding members get lifetime Pro for $29</a></p>
+  </div>
+
+  <p class="fine">Reference points: 72% of freelance projects experience scope creep; solo freelancers lose an estimated $7,800–$15,600/year (ClearTimeline, MicroGaps, 2025–26 estimates). Your inputs stay in your browser — nothing is sent anywhere.</p>
+
+  <footer>© 2026 Uncreep · <a href="/">Home</a> · <a href="/app.html">Live demo</a> · <a href="/terms.html">Terms</a> · <a href="/privacy.html">Privacy</a></footer>
+</div>
+
+<script>
+'use strict';
+function money(n){return '$'+Math.round(n).toLocaleString();}
+function calc(){
+  var r=parseFloat(document.getElementById('rate').value)||0;
+  var h=parseFloat(document.getElementById('hours').value)||0;
+  var w=parseFloat(document.getElementById('weeks').value)||0;
+  var hrsYr=h*w, annual=r*hrsYr;
+  document.getElementById('annual').textContent=money(annual);
+  document.getElementById('monthly').textContent=money(annual/12);
+  document.getElementById('hoursYr').textContent=Math.round(hrsYr)+' hrs';
+  document.getElementById('days').textContent=Math.round(hrsYr/8);
+  document.getElementById('result').style.display='block';
+  document.getElementById('cta').style.display='block';
+  document.getElementById('ctaTitle').textContent = annual>0 ? 'Recover your '+money(annual)+' — one change order at a time' : 'Recover it — one change order at a time';
+  document.getElementById('result').scrollIntoView({behavior:'smooth'});
+}
+</script>
+</body>
+</html>

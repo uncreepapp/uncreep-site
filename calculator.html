@@ -10,6 +10,9 @@
 <meta property="og:description" content="Find out how much you're losing to 'just one more thing' requests every year.">
 <meta property="og:type" content="website">
 <meta property="og:url" content="https://uncreep.app/calculator">
+<meta property="og:image" content="https://uncreep.app/og-card.png">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:image" content="https://uncreep.app/og-card.png">
 <style>
   :root{--bg:#0d1117;--panel:#161b22;--panel2:#1c2330;--border:#2d3644;--text:#e6edf3;--muted:#8b98a9;--accent:#4ade80;--accent-dark:#16a34a;--danger:#f87171;--gold:#fbbf24}
   *{box-sizing:border-box;margin:0;padding:0}
@@ -80,6 +83,10 @@
       <div class="mini"><div class="n" id="hoursYr">0 hrs</div><div class="d">unpaid hours/year</div></div>
       <div class="mini"><div class="n" id="days">0</div><div class="d">full working days donated</div></div>
     </div>
+    <div style="margin-top:20px">
+      <a id="shareX" class="btn btn-sm" target="_blank" rel="noopener" style="margin:4px">Share my number on X</a>
+      <a id="shareLi" class="btn btn-sm" target="_blank" rel="noopener" style="background:transparent;border:1px solid var(--border);color:var(--text);margin:4px">Share on LinkedIn</a>
+    </div>
   </div>
 
   <div class="cta" id="cta">
@@ -91,7 +98,7 @@
 
   <p class="fine">Reference points: 72% of freelance projects experience scope creep; solo freelancers lose an estimated $7,800–$15,600/year (ClearTimeline, MicroGaps, 2025–26 estimates). Your inputs stay in your browser — nothing is sent anywhere.</p>
 
-  <footer>© 2026 Uncreep · <a href="/">Home</a> · <a href="/app.html">Live demo</a> · <a href="/terms.html">Terms</a> · <a href="/privacy.html">Privacy</a></footer>
+  <footer>© 2026 Uncreep · <a href="/">Home</a> · <a href="/app.html">Live demo</a> · <a href="/blog/">Blog</a> · <a href="/wall.html">Wall of Creep</a> · <a href="/terms.html">Terms</a> · <a href="/privacy.html">Privacy</a></footer>
 </div>
 
 <script>
@@ -109,6 +116,9 @@ function calc(){
   document.getElementById('result').style.display='block';
   document.getElementById('cta').style.display='block';
   document.getElementById('ctaTitle').textContent = annual>0 ? 'Recover your '+money(annual)+' — one change order at a time' : 'Recover it — one change order at a time';
+  var shareText = 'Just calculated it: I\'m donating '+money(annual)+'/year of free work to clients ("quick favors" add up 💸)\n\nCalculate yours: https://uncreep.app/calculator via @UncreepApp';
+  document.getElementById('shareX').href = 'https://twitter.com/intent/tweet?text='+encodeURIComponent(shareText);
+  document.getElementById('shareLi').href = 'https://www.linkedin.com/sharing/share-offsite/?url='+encodeURIComponent('https://uncreep.app/calculator');
   document.getElementById('result').scrollIntoView({behavior:'smooth'});
 }
 </script>
